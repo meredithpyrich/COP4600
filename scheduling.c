@@ -28,7 +28,7 @@ main(int argc, char ** argv)
 		char holder[MAX_INPUT_SIZE];
 		while(fgets(holder, MAX_INPUT_SIZE, ipf) != NULL)
 		{
-			// Print the input file (remove this later)
+			// Print the input file line by line (remove this later)
 			fprintf(stdout, "%s", holder);
 		} 
 		
