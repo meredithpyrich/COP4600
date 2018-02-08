@@ -4,6 +4,17 @@
 
 #define MAX_INPUT_SIZE 1000
 
+int processCount;
+int runFor;
+int quantum;
+
+struct process
+{
+	char * name;
+	int arrival;
+	int burst;
+};
+
 // argc - The number of arguments
 // argv - Array of the contents of each argument
 main(int argc, char ** argv)
@@ -28,8 +39,9 @@ main(int argc, char ** argv)
 		char holder[MAX_INPUT_SIZE];
 		while(fgets(holder, MAX_INPUT_SIZE, ipf) != NULL)
 		{
-			// Print the input file line by line (remove this later)
+			// Print the input file (remove this later)
 			fprintf(stdout, "%s", holder);
+
 		} 
 		
 		fclose(ipf);
