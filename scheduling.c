@@ -23,6 +23,8 @@ void fcfs();
 void sjf();
 void rr();
 
+void bubbleSort();
+
 // argc - The number of arguments
 // argv - Array of the contents of each argument
 main(int argc, char ** argv)
@@ -132,7 +134,10 @@ main(int argc, char ** argv)
 				token = strtok(NULL, " ");
 				
 			}
-		} 
+		}
+
+		// Bubble Sort
+		bubbleSort();
 
 		if (DEBUG)
 		{
@@ -182,4 +187,21 @@ void sjf()
 void rr()
 {
 
+}
+
+void bubbleSort()
+{
+    int curProcess1, curProcess2;
+    for (curProcess1 = 0; curProcess1 < processCount; curProcess1++)
+    {
+	for (curProcess2 = 0; curProcess2 < processCount-curProcess1-1; curProcess2++)
+	{
+	    if (processes[curProcess2].arrival > processes[curProcess2+1].arrival)
+	    {
+		struct process temp = processes[curProcess2];
+		processes[curProcess2] = processes[curProcess2+1];
+		processes[curProcess2+1] = temp;
+	    }
+	}
+    }
 }
