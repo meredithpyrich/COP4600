@@ -148,7 +148,7 @@ int main(int argc, char ** argv)
 	{
 		fcfs();
 	}
-	if (sjfOn)
+	else if (sjfOn)
 	{
 		sjf(processes, processCount, runFor);
 	}
