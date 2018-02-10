@@ -1,6 +1,8 @@
 #include <stdio.h>
 #include <string.h>
 #include <stdlib.h>
+#include "ShortestJob.h"
+#include "process.h"
 
 #define MAX_INPUT_SIZE 1000
 #define MAX_NAMING_SIZE 100
@@ -10,24 +12,13 @@ int processCount = 0;
 int runFor = 0;
 int quantum = 0;
 
-struct process
-{
-	char name[MAX_NAMING_SIZE];
-	int arrival;
-	int burst;
-};
-
-struct process * processes;
-
-void fcfs();
-void sjf();
-void rr();
+process * processes;
 
 void bubbleSort();
 
 // argc - The number of arguments
 // argv - Array of the contents of each argument
-main(int argc, char ** argv)
+int main(int argc, char ** argv)
 {
 	// Check if an input file was given at the command line.
 	if (argc != 2)
@@ -77,7 +68,7 @@ main(int argc, char ** argv)
 					token = strtok(NULL, " ");
 					processCount = atoi(token);
 					
-					processes = malloc(sizeof(struct process) * processCount);
+					processes = malloc(sizeof(process) * processCount);
 				}
 				else if (strcmp(token, "runfor") == 0)
 				{
@@ -103,8 +94,6 @@ main(int argc, char ** argv)
 				else if (strcmp(token, "process") == 0)
 				{
 					char programName[MAX_NAMING_SIZE];
-					int arrival;
-					int burst;
 
 					token = strtok(NULL, " ");
 					token = strtok(NULL, " ");
@@ -159,19 +148,20 @@ main(int argc, char ** argv)
 	{
 		fcfs();
 	}
-	else if (sjfOn)
+	if (sjfOn)
 	{
-		sjf();
+		sjf(processes, processCount, runFor);
 	}
 	else if (rrOn)
 	{
 		rr();
 	}
-
 	free(processes);
+	
+	return 0;
 }
 
-// First Come First Serve
+/* // First Come First Serve
 void fcfs()
 {
 
@@ -187,7 +177,7 @@ void sjf()
 void rr()
 {
 
-}
+} */
 
 void bubbleSort()
 {
@@ -198,7 +188,7 @@ void bubbleSort()
 	{
 	    if (processes[curProcess2].arrival > processes[curProcess2+1].arrival)
 	    {
-		struct process temp = processes[curProcess2];
+		process temp = processes[curProcess2];
 		processes[curProcess2] = processes[curProcess2+1];
 		processes[curProcess2+1] = temp;
 	    }
