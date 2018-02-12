@@ -4,7 +4,7 @@
 
 #define MAX_INPUT_SIZE 1000
 #define MAX_NAMING_SIZE 100
-#define DEBUG 1
+#define DEBUG 0
 
 int processCount = 0;
 int runFor = 0;
@@ -136,9 +136,6 @@ main(int argc, char ** argv)
 			}
 		}
 
-		// Bubble Sort
-		bubbleSort();
-
 		if (DEBUG)
 		{
 			printf("%s %d\n", "processCount = ", processCount);
@@ -186,7 +183,94 @@ void sjf()
 // Round Robin
 void rr()
 {
+	int i, j;
+	int arrived[processCount];
+	int arrivedTime[processCount];
+	int finished[processCount];
+	int finishedTime[processCount];
+	int burstTime[processCount];
+	int cycle = 0;
+	int remainingBurst = 0;
+	int loopCount = 0;
 
+	for (i = 0; i < processCount; i++)
+		arrived[i] = 0;	
+
+	for (i = 0; i < runFor; i++)
+	{
+
+		for (j = 0; j < processCount; j++)
+		{
+
+			if (processes[j].arrival == i)
+			{
+				printf("%s %d: %s %s\n", "Time", i, processes[j].name, "arrived");
+				arrived[j] = 1;
+				arrivedTime[j] = i;
+				burstTime[j] = processes[j].burst;
+			}			
+		}
+	
+		if (!(remainingBurst > 0))
+		{
+			loopCount = 0;
+			// Cycle through until we have a program that's ready and needs to be run
+			while (arrived[cycle] != 1 && burstTime[cycle] != 0)
+			{
+				cycle++;
+				if (cycle == processCount)
+				{
+					cycle = 0;
+				}
+				loopCount++;
+				if (loopCount == processCount)
+					break;
+			}
+			
+			if (burstTime[cycle] == 0)
+			{
+				printf("%s %d: %s\n", "Time", i, "Idle");
+			}
+			else
+			{
+				printf("%s %d: %s %s (%s %d)\n", "Time", i, processes[cycle].name, "selected", "burst", burstTime[cycle]);
+			}			
+
+			if (burstTime[cycle] < quantum && finished[cycle] != 1)	
+			{
+				remainingBurst = burstTime[cycle];
+				burstTime[cycle] = 0;
+				printf("%s %d: %s %s\n", "Time", i+remainingBurst, processes[cycle].name, "finished");
+				finished[cycle] = 1;
+				finishedTime[cycle] = i;				
+			}		
+			else
+			{
+				remainingBurst = quantum;
+				burstTime[cycle] -= quantum;
+			}
+
+			cycle++;
+
+			if (cycle == processCount)
+			{
+				cycle = 0;
+			}
+
+		}
+		
+		remainingBurst--;
+
+	}
+	printf("%s %d\n", "Finished at time", runFor);	
+
+	printf("\n");
+	for (i = 0; i < processCount; i++)
+	{
+		int turnaround = (finishedTime[i]-arrivedTime[i])+1;
+		
+		printf("%s %s %d %s %d\n", processes[i].name, "wait", (turnaround - processes[i].burst), "turnaround", turnaround);
+	}
 }
 
 void bubbleSort()
