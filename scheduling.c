@@ -182,13 +182,13 @@ void bubbleSort()
     }
 }
 
-// First Come First Serve
+// First Come First Served
 void fcfs()
 {
     printf("%d processes\n", processCount);
-    printf("Using First Come First Serve\n\n");
+    printf("Using First Come First Served\n\n");
 
-    int curTime, j, nextArrival = 0, curProcess = -1, curBurst = 0;
+    int curTime, i, j, nextArrival = 0, curProcess = -1, curBurst = 0;
     int *waitTime, *turnaroundTime;
 
     waitTime = calloc(processCount, sizeof(int));
@@ -196,41 +196,33 @@ void fcfs()
 
     for (curTime = 0; curTime < runFor; curTime++)
     {
+        // while loop is to make sure multiple files coming in
+        // at the same time will be counted individually (good idea)
         while (nextArrival < processCount && processes[nextArrival].arrival == curTime)
         {
             printf("Time %d: %s arrived\n", curTime, processes[nextArrival].name);
             // next process is one after current process
             int nextProcess = fcfsSelect(nextArrival+1);
+
             if (nextProcess != curProcess)
             {
-                // while program not idle
+                // while program is not idle
                 if (nextProcess != -1)
                 {
-                    // update wait time
-                    for (j = 0; j < nextArrival; j++)
-                    {
-                        if (j != curProcess && processes[j].burst != 0)
-                            //waitTime[j] += curBurst;
-                            ;
-                    }
                     curBurst = 0;
                     curProcess = nextProcess;
                     printf("Time %d: %s selected (burst %d)\n", curTime, processes[curProcess].name, processes[curProcess].burst);
-                    //turnaroundTime[curProcess] -= curTime;
                 }
             }
             nextArrival++;
         }
+        // if process is finished running
         if (processes[curProcess].burst == 0)
         {
             printf("Time %d: %s finished\n", curTime, processes[curProcess].name);
-            //turnaroundTime[curProcess] += curTime;
-            // update wait time
-            for (j = 0; j < nextArrival; j++)
-            {
-                if (j != curProcess && processes[j].burst != 0)
-                    ;//waitTime[j] += curBurst;
-            }
+            turnaroundTime[curProcess] = (curTime-processes[curProcess].arrival);
+            // calculate wait time
+            waitTime[curProcess] = (curTime-processes[curProcess].arrival-curBurst);
             curBurst = 0;
             curProcess = fcfsSelect(nextArrival);
             if (curProcess != -1)
@@ -238,19 +230,24 @@ void fcfs()
         }
         if (curProcess != -1)
         {
+            // decrement the burst time in the queue and increment the burst for wait time calculation
             processes[curProcess].burst--;
             curBurst++;
             if (curTime == runFor-1)
+            {
                 printf("Time %d: %s finished\n", curTime+1, processes[curProcess].name);
+                waitTime[curProcess] = ((curTime+1)-processes[curProcess].arrival-curBurst);
+                turnaroundTime[curProcess] += ((curTime+1)-processes[curProcess].arrival);
+            }
         }
         else
             printf("Time %d: IDLE\n", curTime);
     }
-    printf("finished at time %d\n\n", curTime);
+    printf("Finished at time %d\n\n", curTime);
 
-    for (j = 0; j < processCount; j++)
+    for (i = 0; i < processCount; i++)
     {
-        printf("%s wait %d turnaround %d\n", processes[j].name, waitTime[j], turnaroundTime[j]);
+        printf("%s wait %d turnaround %d\n", processes[i].name, waitTime[i], turnaroundTime[i]);
     }
 
     free(waitTime);
