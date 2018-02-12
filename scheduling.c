@@ -183,6 +183,11 @@ void sjf()
 // Round Robin
 void rr()
 {
+
+	printf("%d %s\n", processCount, "processes");
+	printf("Using Round Robin\n");
+	printf("%s %d\n\n", "Quantum", quantum);
+	
 	int i, j;
 	int arrived[processCount];
 	int arrivedTime[processCount];
