@@ -13,7 +13,7 @@ int sjfSelect(struct process *queue, int size);
 //Updates the wait times after a given burst
 void updateWait(process *queue, int *wait, int burstSize, int currentProcess, int limit);
 
-void sjf(process *queue, int processCount, int runFor)
+void sjf(process *queue, int *order, int processCount, int runFor)
 {
 	//I believe that our output is a file. He says the name is supposed to be constant. I'm not sure
 	FILE *f = fopen("Processes.out", "w");
@@ -88,7 +88,7 @@ void sjf(process *queue, int processCount, int runFor)
 	int x;
 	for(x = 0; x < processCount; x++)
 	{
-		fprintf(f, "%s wait %d turnaround %d\n", queue[x].name, wait[x], turnaround[x]);
+		fprintf(f, "%s wait %d turnaround %d\n", queue[order[x]].name, wait[order[x]], turnaround[order[x]]);
 	}
 	
 	fclose(f);
