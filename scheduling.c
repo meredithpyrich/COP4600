@@ -1,29 +1,24 @@
 #include <stdio.h>
 #include <string.h>
 #include <stdlib.h>
+#include <limits.h>
 
 #define MAX_INPUT_SIZE 1000
 #define MAX_NAMING_SIZE 100
 #define DEBUG 0
 
-int processCount = 0;
-int runFor = 0;
-int quantum = 0;
-
-struct process
+typedef struct process
 {
 	char name[MAX_NAMING_SIZE];
 	int arrival;
 	int burst;
-};
-
-struct process * processes;
+}process;
 
 void fcfs();
 void sjf();
-void rr();
+void rr(process * processes, int processCount, int runFor, int quantum);
 
-void bubbleSort();
+void bubbleSort(process * processes, int processCount);
 
 // argc - The number of arguments
 // argv - Array of the contents of each argument
@@ -45,6 +40,12 @@ main(int argc, char ** argv)
 	int sjfOn = 0;
 	int rrOn = 0;
 	int currentProcess = 0;
+
+	int processCount = 0;
+	int runFor = 0;
+	int quantum = 0;
+
+	process * processes;
 	
 	if (ipf != NULL)
 	{
@@ -77,7 +78,7 @@ main(int argc, char ** argv)
 					token = strtok(NULL, " ");
 					processCount = atoi(token);
 					
-					processes = malloc(sizeof(struct process) * processCount);
+					processes = malloc(sizeof(process) * processCount);
 				}
 				else if (strcmp(token, "runfor") == 0)
 				{
@@ -162,7 +163,7 @@ main(int argc, char ** argv)
 	}
 	else if (rrOn)
 	{
-		rr();
+		rr(processes, processCount, runFor, quantum);
 	}
 
 	free(processes);
@@ -181,8 +182,13 @@ void sjf()
 }
 
 // Round Robin
-void rr()
+void rr(process * processes, int processCount, int runFor, int quantum)
 {
+
+	printf("%d %s\n", processCount, "processes");
+	printf("Using Round Robin\n");
+	printf("%s %d\n\n", "Quantum", quantum);
+	
 	int i, j;
 	int arrived[processCount];
 	int arrivedTime[processCount];
@@ -273,7 +279,7 @@ void rr()
 	}
 }
 
-void bubbleSort()
+void bubbleSort(process * processes, int processCount)
 {
     int curProcess1, curProcess2;
     for (curProcess1 = 0; curProcess1 < processCount; curProcess1++)
@@ -282,7 +288,7 @@ void bubbleSort()
 	{
 	    if (processes[curProcess2].arrival > processes[curProcess2+1].arrival)
 	    {
-		struct process temp = processes[curProcess2];
+		process temp = processes[curProcess2];
 		processes[curProcess2] = processes[curProcess2+1];
 		processes[curProcess2+1] = temp;
 	    }
