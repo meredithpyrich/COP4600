@@ -308,7 +308,8 @@ void rr(process * processes, int processCount, int runFor, int quantum)
 	FILE * f = fopen("Processes.out", "w");
 	fprintf(f, "%d processes \n", processCount);
 	fprintf(f, "Using Round-Robin\n");
-	fprintf(f, "Quantum 2\n\n");
+	fprintf(f, "Quantum %d", quantum);
+	fprintf(f, "\n\n");
 
 	int i, j;
 	int arrived[processCount];
