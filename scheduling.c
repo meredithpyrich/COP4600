@@ -353,13 +353,20 @@ void sjf(process *queue, int * order, int processCount, int runFor)
 			fprintf(f, "Time %d: IDLE\n", time);
 		}
 	}
-	
+	if(currentProcess != -1)
+	{
+		fprintf(f, "Time %d: %s Terminated\n", time, queue[currentProcess].name); 
+	}
 	fprintf(f, "Finished at time %d\n\n", time);
 	
 	int x;
+
 	for(x = 0; x < processCount; x++)
 	{
-		fprintf(f, "%s wait %d turnaround %d\n", queue[order[x]].name, wait[order[x]], turnaround[order[x]]);
+		if(turnaround[order[x]] < 0)
+			fprintf(f, "%s wait 0 turnaround 0\n", queue[order[x]].name);	
+		else	
+			fprintf(f, "%s wait %d turnaround %d\n", queue[order[x]].name, wait[order[x]], turnaround[order[x]]);
 	}
 	
 	fclose(f);
@@ -412,13 +419,16 @@ void rr(process * processes, int processCount, int runFor, int quantum)
 	int cycle = 0;
 	int remainingBurst = 0;
 	int loopCount = 0;
+	int waitingProcesses = 0;
 
 	for (i = 0; i < processCount; i++)
-		arrived[i] = 0;	
+	{
+		arrived[i] = 0;
+		finished[i] = 0;
+	}
 
 	for (i = 0; i < runFor; i++)
 	{
-
 		for (j = 0; j < processCount; j++)
 		{
 
@@ -428,10 +438,11 @@ void rr(process * processes, int processCount, int runFor, int quantum)
 				arrived[j] = 1;
 				arrivedTime[j] = i;
 				burstTime[j] = processes[j].burst;
+				waitingProcesses++;
 			}			
 		}
 	
-		if (!(remainingBurst > 0))
+		if (remainingBurst <= 0)
 		{
 			loopCount = 0;
 			// Cycle through until we have a program that's ready and needs to be run
@@ -447,41 +458,50 @@ void rr(process * processes, int processCount, int runFor, int quantum)
 					break;
 			}
 			
-			if (burstTime[cycle] == 0)
-			{
-				fprintf(f, "%s %d: %s\n", "Time", i, "IDLE");
-			}
-			else
+			
+			if (burstTime[cycle] != 0)
 			{
 				fprintf(f, "%s %d: %s %s (%s %d)\n", "Time", i, processes[cycle].name, "selected", "burst", burstTime[cycle]);
-			}			
+			}		
+			else
+			{
+				fprintf(f, "%s %d: %s\n", "Time", i, "IDLE");
+			}	
 
-			if (burstTime[cycle] < quantum && finished[cycle] != 1)	
+			if (burstTime[cycle] <= quantum && finished[cycle] != 1)	
 			{
 				remainingBurst = burstTime[cycle];
 				burstTime[cycle] = 0;
 				fprintf(f, "%s %d: %s %s\n", "Time", i+remainingBurst, processes[cycle].name, "finished");
 				finished[cycle] = 1;
-				finishedTime[cycle] = i;				
+				finishedTime[cycle] = i;
+				waitingProcesses--;				
 			}		
-			else
+			else if (finished[cycle] != 1)
 			{
 				remainingBurst = quantum;
 				burstTime[cycle] -= quantum;
 			}
 
-			cycle++;
-
-			if (cycle == processCount)
+			if (waitingProcesses > 0)
 			{
-				cycle = 0;
-			}
+				cycle++;
 
+				if (cycle == processCount)
+				{
+					cycle = 0;
+				}
+			}
 		}
 		
-		remainingBurst--;
+		if (remainingBurst > 0)
+			remainingBurst--;
 
 	}
+
+	if (burstTime[cycle] != 0)
+		fprintf(f, "%s %d: %s %s\n", "Time", runFor, processes[cycle].name, "terminated");
+
 	fprintf(f, "%s %d\n", "Finished at time", runFor);	
 
 	fprintf(f, "\n");
@@ -489,7 +509,14 @@ void rr(process * processes, int processCount, int runFor, int quantum)
 	{
 		int turnaround = (finishedTime[i]-arrivedTime[i])+1;
 		
-		fprintf(f, "%s %s %d %s %d\n", processes[i].name, "wait", (turnaround - processes[i].burst), "turnaround", turnaround);
+		if (!finished[i])
+		{
+			fprintf(f, "%s %s %d %s %d\n", processes[i].name, "wait", 0, "turnaround", 0);
+		}
+		else
+		{
+			fprintf(f, "%s %s %d %s %d\n", processes[i].name, "wait", (turnaround - processes[i].burst), "turnaround", turnaround);
+		}
 	}
 }
 
