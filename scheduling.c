@@ -14,8 +14,8 @@ typedef struct process
 	int burst;
 }process;
 
-void fcfs();
-void rr(process * processes, int processCount, int runFor, int quantum);
+void fcfs(process * processes, int processCount, int runFor);
+int fcfsSelect(process *processes, int nextProcessAfter);
 
 //Performs the scheduling function
 void sjf(process *queue, int * order, int processCount, int runFor);
@@ -23,6 +23,8 @@ void sjf(process *queue, int * order, int processCount, int runFor);
 int sjfSelect(process *queue, int size);
 //Updates the wait times after a given burst
 void updateWait(process *queue, int *wait, int burstSize, int currentProcess, int limit);
+
+void rr(process * processes, int processCount, int runFor, int quantum);
 
 void bubbleSort(process * processes, int * order, int processCount);
 
@@ -169,7 +171,7 @@ main(int argc, char ** argv)
 
 	if (fcfsOn)
 	{
-		fcfs();
+		fcfs(processes, processCount, runFor);
 	}
 	else if (sjfOn)
 	{
@@ -185,10 +187,103 @@ main(int argc, char ** argv)
 	free(order);
 }
 
-// First Come First Serve
-void fcfs()
+// First Come First Served
+void fcfs(process * processes, int processCount, int runFor)
 {
+    FILE *fout = fopen("processes.out", "w");
 
+    fprintf(fout, "%d processes\n", processCount);
+    fprintf(fout, "Using First Come First Served\n\n");
+
+    int curTime, curIdx, nextArrival = 0, curProcess = -1, curBurst = 0, idle = -1;
+    int *waitTime = calloc(processCount, sizeof(int));
+    int *turnaroundTime = calloc(processCount, sizeof(int));
+
+    for (curTime = 0; curTime < runFor; curTime++)
+    {
+        // while loop is to make sure multiple files coming in
+        // at the same time will be counted individually (good idea)
+        while (nextArrival < processCount && processes[nextArrival].arrival == curTime)
+        {
+            fprintf(fout, "Time %d: %s arrived\n", curTime, processes[nextArrival].name);
+            // next process is one after current process if current process is done
+            int nextProcess = fcfsSelect(processes, nextArrival+1);
+
+            if (nextProcess != curProcess)
+            {
+                // while process is not idle
+                if (nextProcess != -1)
+                {
+                    curBurst = 0;
+                    curProcess = nextProcess;
+                    fprintf(fout, "Time %d: %s selected (burst %d)\n", curTime, processes[curProcess].name, processes[curProcess].burst);
+                }
+            }
+            nextArrival++;
+        }
+        // if a process is finished running
+        if (processes[curProcess].burst == 0)
+        {
+            fprintf(fout, "Time %d: %s finished\n", curTime, processes[curProcess].name);
+            // calculate turnaround time
+            turnaroundTime[curProcess] = (curTime-processes[curProcess].arrival);
+            // calculate wait time
+            waitTime[curProcess] = (curTime-processes[curProcess].arrival-curBurst);
+            // select next process or identify as idle
+            curBurst = 0;
+            curProcess = fcfsSelect(processes, nextArrival);
+            // select the next process to run
+            if (curProcess != -1)
+                fprintf(fout, "Time %d: %s selected (burst %d)\n", curTime, processes[curProcess].name, processes[curProcess].burst);
+        }
+        // if a process is not finished running
+        if (curProcess != -1)
+        {
+            // decrement the burst time in processes and increment the burst for wait time calculation
+            processes[curProcess].burst--;
+            curBurst++;
+            // if a process is running in the last time interval
+            if (curTime == runFor-1)
+            {
+                // check if process finishes and if yes, output finish time
+                if (processes[curProcess].burst == 0)
+                {
+                    fprintf(fout, "Time %d: %s finished\n", curTime+1, processes[curProcess].name);
+                    waitTime[curProcess] = ((curTime+1)-processes[curProcess].arrival-curBurst);
+                    turnaroundTime[curProcess] += ((curTime+1)-processes[curProcess].arrival);
+                }
+                else
+                    fprintf(fout, "Time %d: %s terminated\n", curTime+1, processes[curProcess].name);
+            }
+        }
+        else
+            fprintf(fout, "Time %d: IDLE\n", curTime);
+    }
+    fprintf(fout, "Finished at time %d\n\n", curTime);
+    // print wait time and turnaround time for each process
+    for (curIdx = 0; curIdx < processCount; curIdx++)
+    {
+        fprintf(fout, "%s wait %d turnaround %d\n", processes[curIdx].name, waitTime[curIdx], turnaroundTime[curIdx]);
+    }
+
+    fclose(fout);
+    free(waitTime);
+    free(turnaroundTime);
+}
+
+int fcfsSelect(process *processes, int nextProcessAfter)
+{
+    int selectProcess = -1;
+    int curProcessSelect;
+    for (curProcessSelect = 0; curProcessSelect < nextProcessAfter; curProcessSelect++)
+    {
+        if (processes[curProcessSelect].burst > 0)
+        {
+            selectProcess = curProcessSelect;
+            break;
+        }
+    }
+    return selectProcess;
 }
 
 // Shortest Job First
@@ -271,7 +366,7 @@ void sjf(process *queue, int * order, int processCount, int runFor)
 	free(turnaround);
 }
 
-int sjfSelect(struct process *queue, int size)
+int sjfSelect(process *queue, int size)
 {
 	int minBurst = INT_MAX;
 	int select = -1;
