@@ -14,7 +14,7 @@ typedef struct process
 	int burst;
 }process;
 
-void fcfs(process * processes, int processCount, int runFor);
+void fcfs(process * processes, int * order, int processCount, int runFor);
 int fcfsSelect(process *processes, int nextProcessAfter);
 
 //Performs the scheduling function
@@ -171,7 +171,8 @@ main(int argc, char ** argv)
 
 	if (fcfsOn)
 	{
-		fcfs(processes, processCount, runFor);
+		bubbleSort(processes, order, processCount);
+		fcfs(processes, order, processCount, runFor);
 	}
 	else if (sjfOn)
 	{
@@ -188,7 +189,7 @@ main(int argc, char ** argv)
 }
 
 // First Come First Served
-void fcfs(process * processes, int processCount, int runFor)
+void fcfs(process * processes, int * order, int processCount, int runFor)
 {
     FILE *fout = fopen("processes.out", "w");
 
@@ -263,7 +264,7 @@ void fcfs(process * processes, int processCount, int runFor)
     // print wait time and turnaround time for each process
     for (curIdx = 0; curIdx < processCount; curIdx++)
     {
-        fprintf(fout, "%s wait %d turnaround %d\n", processes[curIdx].name, waitTime[curIdx], turnaroundTime[curIdx]);
+        fprintf(fout, "%s wait %d turnaround %d\n", processes[order[curIdx]].name, waitTime[order[curIdx]], turnaroundTime[order[curIdx]]);
     }
 
     fclose(fout);
