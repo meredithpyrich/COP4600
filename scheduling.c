@@ -194,8 +194,7 @@ void fcfs()
 // Shortest Job First
 void sjf(process *queue, int * order, int processCount, int runFor)
 {
-	//I believe that our output is a file. He says the name is supposed to be constant. I'm not sure
-	FILE *f = fopen("Processes.out", "w");
+	FILE *f = fopen("processes.out", "w");
 	fprintf(f, "%d processes \n", processCount);
 	fprintf(f, "Using Shortest Job First (Pre)\n\n");
 	
@@ -221,25 +220,22 @@ void sjf(process *queue, int * order, int processCount, int runFor)
 		//I check for new processes in a loop just in case there are multiple processes with the same arrival time
 		while(nextArrival < processCount && queue[nextArrival].arrival == time)
 		{
+			updateWait(queue, wait, currentBurst, currentProcess, nextArrival);
+			currentBurst = 0;
+			turnaround[nextArrival] -= time;
+			
 			int nextProcess;
 			fprintf(f, "Time %d: %s arrived\n", time, queue[nextArrival].name); 
 			nextProcess = sjfSelect(queue, nextArrival + 1);
-			if(nextProcess != currentProcess)
+			if(nextProcess != -1 && nextProcess != currentProcess)
 			{
-				if(nextProcess != -1)
-				{
-					updateWait(queue, wait, currentBurst, currentProcess, nextArrival);
-					currentBurst = 0;
-					currentProcess = nextProcess;
-					
-					fprintf(f, "Time %d: %s selected (burst %d)\n", time, queue[currentProcess].name, queue[currentProcess].burst);
-					turnaround[currentProcess] -= time;	
-				}
+				currentProcess = nextProcess;
+				fprintf(f, "Time %d: %s selected (burst %d)\n", time, queue[currentProcess].name, queue[currentProcess].burst);	
 			}
 			nextArrival++;
 		}
 		//A process with a burst time of 0 is considered done
-		if (queue[currentProcess].burst == 0)
+		if (currentProcess > -1 && queue[currentProcess].burst == 0)
 		{
 			fprintf(f, "Time %d: %s finished\n", time, queue[currentProcess].name);
 			turnaround[currentProcess] += time;
@@ -305,7 +301,7 @@ void updateWait(process *queue, int *wait, int burstSize, int currentProcess, in
 // Round Robin
 void rr(process * processes, int processCount, int runFor, int quantum)
 {
-	FILE * f = fopen("Processes.out", "w");
+	FILE * f = fopen("processes.out", "w");
 	fprintf(f, "%d processes \n", processCount);
 	fprintf(f, "Using Round-Robin\n");
 	fprintf(f, "Quantum %d", quantum);
