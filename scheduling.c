@@ -446,7 +446,7 @@ void rr(process * processes, int processCount, int runFor, int quantum)
 		{
 			loopCount = 0;
 			// Cycle through until we have a program that's ready and needs to be run
-			while (arrived[cycle] != 1 && burstTime[cycle] != 0)
+			while (arrived[cycle] != 1 || finished[cycle] == 1)
 			{
 				cycle++;
 				if (cycle == processCount)
@@ -474,7 +474,7 @@ void rr(process * processes, int processCount, int runFor, int quantum)
 				burstTime[cycle] = 0;
 				fprintf(f, "%s %d: %s %s\n", "Time", i+remainingBurst, processes[cycle].name, "finished");
 				finished[cycle] = 1;
-				finishedTime[cycle] = i;
+				finishedTime[cycle] = i+remainingBurst;
 				waitingProcesses--;				
 			}		
 			else if (finished[cycle] != 1)
@@ -507,8 +507,8 @@ void rr(process * processes, int processCount, int runFor, int quantum)
 	fprintf(f, "\n");
 	for (i = 0; i < processCount; i++)
 	{
-		int turnaround = (finishedTime[i]-arrivedTime[i])+1;
-		
+		int turnaround = (finishedTime[i]-arrivedTime[i]);
+
 		if (!finished[i])
 		{
 			fprintf(f, "%s %s %d %s %d\n", processes[i].name, "wait", 0, "turnaround", 0);
