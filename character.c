@@ -5,8 +5,10 @@
 #include <linux/fs.h>
 #include <linux/uaccess.h>
 
-static int     open();
-static int     close();
+static int majorDeviceNumber;
+
+static int open();
+static int release();
 static ssize_t read();
 static ssize_t write();
 
@@ -23,10 +25,11 @@ void cleanup_module(void)
 
 static int open()
 {
+	printk(KERN_INFO "Device opened\n");
 	return 0;
 }
 
-static int close()
+static int release()
 {
 	printk(KERN_INFO "Device closed");
 	return 0;
