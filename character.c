@@ -5,10 +5,10 @@
 #include <linux/fs.h>
 #include <linux/uaccess.h>
 
-static int     dev_open();
-static int     dev_release();
-static ssize_t dev_read();
-static ssize_t dev_write();
+static int     open();
+static int     close();
+static ssize_t read();
+static ssize_t write();
 
 int init_module(void)
 {
@@ -21,23 +21,23 @@ void cleanup_module(void)
 	printk(KERN_INFO "Removing module\n");
 }
 
-static int dev_open()
+static int open()
 {
 	return 0;
 }
 
-static int dev_release()
+static int close()
 {
-	printf(KERN_INFO "Device closed");
+	printk(KERN_INFO "Device closed");
 	return 0;
 }
 
-static ssize_t dev_read()
+static ssize_t read()
 {
 
 }
 
-static ssize_t dev_write()
+static ssize_t write()
 {
 
 }
