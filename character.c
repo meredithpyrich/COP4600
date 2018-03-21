@@ -1,9 +1,7 @@
-#include <linux/init.h>
 #include <linux/module.h>
 #include <linux/device.h>
 #include <linux/kernel.h>
 #include <linux/fs.h>
-#include <linux/uaccess.h>
 
 static int majorDeviceNumber;
 
@@ -11,6 +9,14 @@ static int open();
 static int release();
 static ssize_t read();
 static ssize_t write();
+
+static struct file_operations fileOps =
+{
+   .open = open,
+   .read = read,
+   .write = write,
+   .release = release,
+};
 
 int init_module(void)
 {
