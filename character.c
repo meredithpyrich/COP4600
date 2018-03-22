@@ -2,27 +2,29 @@
 #include <linux/device.h>
 #include <linux/kernel.h>
 #include <linux/fs.h>
+#include <asm/uaccess.h>
 
 static int majorDeviceNumber;
 
-static int open(struct inode * iNode, struct file * File);
-static int release(struct inode * iNode, struct file * File);
-static ssize_t read(struct file * File, char __user * User, size_t Size, loff_t * Loff);
-static ssize_t write(struct file * File, const char __user * User, size_t Size, loff_t * Loff);
+static int this_open(struct inode * inode, struct file * file);
+static int this_release(struct inode * inode, struct file * file);
+static ssize_t this_read(struct file * file, char * buffer, size_t size, loff_t * offset);
+static ssize_t this_write(struct file * file, const char * buffer, size_t size, loff_t * offset);
 
-//static struct class* Class = NULL;
-//static struct device* Device = NULL;
+#define DEVICE_NAME "character"
+#define BUFFER_LENGTH 1024
 
-/*static struct file_operations fileOps =
+static struct file_operations fops =
 {
-	.open = open,
-	.release = release,
-	.read = read,
-	.write = write,
-};*/
+	.open = this_open,
+	.release = this_release,
+	.read = this_read,
+	.write = this_write,
+};
 
 int init_module(void)
 {
+	majorDeviceNumber = register_chrdev(0, DEVICE_NAME, &fops);
 	printk(KERN_INFO "Installing module.\n");
 	return 0;
 }
@@ -32,25 +34,27 @@ void cleanup_module(void)
 	printk(KERN_INFO "Removing module\n");
 }
 
-static int open(struct inode * iNode, struct file * File)
+static int this_open(struct inode * inode, struct file * file)
 {
 	printk(KERN_INFO "Device opened\n");
 	return 0;
 }
 
-static int release(struct inode * iNode, struct file * File)
+static int this_release(struct inode * inode, struct file * file)
 {
 	printk(KERN_INFO "Device closed");
 	return 0;
 }
 
-static ssize_t read(struct file * File, char __user * User, size_t Size, loff_t * Loff)
+static ssize_t this_read(struct file * file, char * buffer, size_t size, loff_t * offset)
 {
 
+	return -EINVAL;
 }
 
-static ssize_t write(struct file * File, const char __user * User, size_t Size, loff_t * Loff)
+static ssize_t this_write(struct file * file, const char * buffer, size_t size, loff_t * offset)
 {
 
+	return -EINVAL;
 }
 
