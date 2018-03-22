@@ -8,6 +8,9 @@
 #define BUFFER_SIZE 1024
 
 static int majorDeviceNumber;
+static char buffer[BUFFER_SIZE];
+static int bufferStart;
+static int bufferEnd;
 
 static int this_open(struct inode * inode, struct file * file);
 static int this_release(struct inode * inode, struct file * file);
@@ -67,7 +70,7 @@ static int this_release(struct inode * inode, struct file * file)
 
 static ssize_t this_read(struct file * file, char * buffer, size_t size, loff_t * offset)
 {
-
+	
 	return -EINVAL;
 }
 
