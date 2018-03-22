@@ -38,17 +38,29 @@ int init_module(void)
 
 void cleanup_module(void)
 {
+	unregister_chrdev(majorDeviceNumber, DEVICE_NAME);
+	/*if(error < 0)
+	{
+		printk(KERN_ALERT "Error in unregister_chrdev: %d\n", error);
+	}
+	else
+	{	
+		printk(KERN_INFO "Removing success\n");
+	}*/
 	printk(KERN_INFO "Removing success\n");
 }
 
+
 static int this_open(struct inode * inode, struct file * file)
 {
+	try_module_get(THIS_MODULE);
 	printk(KERN_INFO "Device opened\n");
 	return 0;
 }
 
 static int this_release(struct inode * inode, struct file * file)
 {
+	module_put(THIS_MODULE);
 	printk(KERN_INFO "Device closed");
 	return 0;
 }
