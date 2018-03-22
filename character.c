@@ -8,9 +8,10 @@
 #define BUFFER_SIZE 1024
 
 static int majorDeviceNumber;
-static char buffer[BUFFER_SIZE];
-static int bufferStart;
-static int bufferEnd;
+static char ourInternalBuffer[BUFFER_SIZE];
+static int messageLength;
+
+static void shiftBuffer(int shift);
 
 static int this_open(struct inode * inode, struct file * file);
 static int this_release(struct inode * inode, struct file * file);
@@ -47,7 +48,7 @@ void cleanup_module(void)
 		printk(KERN_ALERT "Error in unregister_chrdev: %d\n", error);
 	}
 	else
-	{	
+	{
 		printk(KERN_INFO "Removing success\n");
 	}*/
 	printk(KERN_INFO "Removing success\n");
@@ -56,27 +57,48 @@ void cleanup_module(void)
 
 static int this_open(struct inode * inode, struct file * file)
 {
-	try_module_get(THIS_MODULE);
+	//try_module_get(THIS_MODULE);
 	printk(KERN_INFO "Device opened\n");
 	return 0;
 }
 
 static int this_release(struct inode * inode, struct file * file)
 {
-	module_put(THIS_MODULE);
+	//module_put(THIS_MODULE);
 	printk(KERN_INFO "Device closed");
 	return 0;
 }
 
 static ssize_t this_read(struct file * file, char * buffer, size_t size, loff_t * offset)
 {
+	if (size > messageLength)
+		size = messageLength;
+
+	copy_to_user(buffer, ourInternalBuffer, size);
 	
-	return -EINVAL;
+	size -= messageLength;
+	shiftBuffer(size);
+
+	return 0;
 }
 
 static ssize_t this_write(struct file * file, const char * buffer, size_t size, loff_t * offset)
 {
-
-	return -EINVAL;
+	// check to make sure amount of space going to buffer isn't too large
+	if (size >= (BUFFER_SIZE-messageLength))
+		size = BUFFER_SIZE-messageLength;
+	
+	copy_from_user(ourInternalBuffer,buffer,size);
+	messageLength += size;
+	
+	return 0;
 }
 
+static void shiftBuffer(int shift)
+{
+	int counter;
+	for(counter = 0; counter < messageLength; counter++)
+	{
+		ourInternalBuffer[counter] = ourInternalBuffer[counter+shift];
+	}
+}
