@@ -4,15 +4,15 @@
 #include <linux/fs.h>
 #include <asm/uaccess.h>
 
+#define DEVICE_NAME "character"
+#define BUFFER_SIZE 1024
+
 static int majorDeviceNumber;
 
 static int this_open(struct inode * inode, struct file * file);
 static int this_release(struct inode * inode, struct file * file);
 static ssize_t this_read(struct file * file, char * buffer, size_t size, loff_t * offset);
 static ssize_t this_write(struct file * file, const char * buffer, size_t size, loff_t * offset);
-
-#define DEVICE_NAME "character"
-#define BUFFER_LENGTH 1024
 
 static struct file_operations fops =
 {
@@ -25,13 +25,20 @@ static struct file_operations fops =
 int init_module(void)
 {
 	majorDeviceNumber = register_chrdev(0, DEVICE_NAME, &fops);
-	printk(KERN_INFO "Installing module.\n");
+
+	if (majorDeviceNumber < 0)
+	{
+		printk(KERN_ALERT "Registering failed. majorDeviceNumber = %d\n", majorDeviceNumber);
+		return majorDeviceNumber;
+	}
+
+	printk(KERN_INFO "Registering success.\n");
 	return 0;
 }
 
 void cleanup_module(void)
 {
-	printk(KERN_INFO "Removing module\n");
+	printk(KERN_INFO "Removing success\n");
 }
 
 static int this_open(struct inode * inode, struct file * file)
