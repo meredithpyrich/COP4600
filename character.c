@@ -1,3 +1,4 @@
+#include <linux/init.h>
 #include <linux/module.h>
 #include <linux/device.h>
 #include <linux/kernel.h>
@@ -5,11 +6,16 @@
 #include <asm/uaccess.h>
 
 #define DEVICE_NAME "character"
+#define CLASS_NAME "chara"
 #define BUFFER_SIZE 1024
 
-static int majorDeviceNumber;
+MODULE_LICENSE("GPL");
+
+static int majorDeviceNumber = -1;
 static char ourInternalBuffer[BUFFER_SIZE];
 static int messageLength;
+static struct class* deviceClass = NULL;
+static struct device* devicePointer = NULL;
 
 static void shiftBuffer(int shift);
 
@@ -35,22 +41,36 @@ int init_module(void)
 		printk(KERN_ALERT "Registering failed. majorDeviceNumber = %d\n", majorDeviceNumber);
 		return majorDeviceNumber;
 	}
+	
+	
+	// Register device class
+	deviceClass = class_create(THIS_MODULE, CLASS_NAME);
+	if (IS_ERR(deviceClass))
+	{
+		unregister_chrdev(majorDeviceNumber, DEVICE_NAME);
+		printk(KERN_ALERT "Failed to register class\n");
+		return PTR_ERR(deviceClass);
+	}
 
+	// Register driver
+	devicePointer = device_create(deviceClass, NULL, MKDEV(majorDeviceNumber, 0), NULL, DEVICE_NAME);
+	if (IS_ERR(devicePointer))
+	{
+		class_destroy(deviceClass);
+		unregister_chrdev(majorDeviceNumber, DEVICE_NAME);
+		printk(KERN_ALERT "Failed to create device\n");
+	}		
 	printk(KERN_INFO "Registering success.\n");
 	return 0;
 }
 
 void cleanup_module(void)
 {
-	unregister_chrdev(majorDeviceNumber, DEVICE_NAME);
-	/*if(error < 0)
-	{
-		printk(KERN_ALERT "Error in unregister_chrdev: %d\n", error);
-	}
-	else
-	{
-		printk(KERN_INFO "Removing success\n");
-	}*/
+	
+	device_destroy(deviceClass, MKDEV(majorDeviceNumber, 0));
+	class_unregister(deviceClass);
+	class_destroy(deviceClass);
+	unregister_chrdev(majorDeviceNumber, DEVICE_NAME); 
 	printk(KERN_INFO "Removing success\n");
 }
 
