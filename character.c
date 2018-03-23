@@ -96,10 +96,12 @@ static ssize_t this_read(struct file * file, char * buffer, size_t size, loff_t 
 
 	copy_to_user(buffer, ourInternalBuffer, size);
 	
-	size -= messageLength;
+	messageLength -= size;
 	shiftBuffer(size);
 
-	return messageLength;
+	printk(KERN_INFO "Read: messageLength = %d", messageLength);
+
+	return size;
 }
 
 static ssize_t this_write(struct file * file, const char * buffer, size_t size, loff_t * offset)
@@ -108,8 +110,10 @@ static ssize_t this_write(struct file * file, const char * buffer, size_t size, 
 	if (size >= (BUFFER_SIZE-messageLength))
 		size = BUFFER_SIZE-messageLength;
 	
-	copy_from_user(ourInternalBuffer,buffer,size);
+	copy_from_user(ourInternalBuffer+messageLength,buffer,size);
 	messageLength += size;
+	
+	printk(KERN_INFO "Write: messageLength = %d", messageLength);
 	
 	return messageLength;
 }
